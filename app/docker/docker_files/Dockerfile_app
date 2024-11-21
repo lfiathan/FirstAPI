@@ -1,0 +1,31 @@
+
+FROM python:3.12-alpine
+
+# Set environment variables to prevent Python from buffering output and creating .pyc files
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# Install system dependencies
+RUN apk add --no-cache \
+    netcat-openbsd \
+    gettext \
+    httpie \
+    gcc \
+    musl-dev \
+    libffi-dev \
+    python3-dev
+
+# Upgrade pip and install Flask
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install flask
+
+# Create and set the working directory
+RUN mkdir /code
+WORKDIR /code
+
+# Copy application code
+COPY ./server.py .
+
+# Specify the entrypoint
+ENTRYPOINT ["python", "./server.py"]
+
