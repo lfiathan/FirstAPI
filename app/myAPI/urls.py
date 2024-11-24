@@ -19,11 +19,16 @@ from django.urls import path, include  # Import include
 from django.contrib import admin
 from rest_framework import routers
 from myapp import views  # Assuming you have a views.py file in 'myapp'
+from ecommerce import views as ecommerce_views
+from rest_framework.authtoken.views import obtain_auth_token
 
 router = routers.DefaultRouter()
+router.register(r'item', ecommerce_views.ItemViewSet, basename='item')
+router.register(r'order', ecommerce_views.OrderViewSet, basename='order')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('myapp.urls')),  # Include app URLs
+    path('api-token-auth/', obtain_auth_token), #gives us access to token auth
 ]
 

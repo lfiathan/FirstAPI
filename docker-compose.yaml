@@ -6,9 +6,11 @@ services:
       dockerfile: docker/docker_files/Dockerfile
     restart: unless-stopped
     command: >
-      sh -c "python manage.py makemigrations &&
-             python manage.py migrate &&
-             python manage.py runserver 0.0.0.0:8000"
+      sh -c "
+      python manage.py createsuperuser &&
+      python manage.py makemigrations &&
+      python manage.py migrate &&
+      python manage.py runserver 0.0.0.0:8000"
     volumes:
       - ./app:/code
     ports:

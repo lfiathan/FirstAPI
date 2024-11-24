@@ -30,7 +30,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',  # Django messaging framework
     'django.contrib.staticfiles',  # Django static files framework
     'rest_framework',  # Django REST framework for building APP_DIRS
+    'rest_framework.authtoken',
     'myapp',  # Your custom application (replace with your app name)
+    'ecommerce', # new application
 ]
 
 # Middleware settings
@@ -109,6 +111,9 @@ REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'rest_framework_json_api.exceptions.exception_handler',
     'DEFAULT_PARSER_CLASSES': (
         'rest_framework_json_api.parsers.JSONParser',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
     ),
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework_json_api.renderers.JSONRenderer',
