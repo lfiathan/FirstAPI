@@ -1,32 +1,86 @@
 
 services:
-  api:
+  backend:
     build:
-      context: ./app
+      context: ./backend
       dockerfile: docker/docker_files/Dockerfile
     restart: unless-stopped
-    command: >
-      sh -c "
-      python manage.py createsuperuser &&
-      python manage.py makemigrations &&
-      python manage.py migrate &&
-      python manage.py runserver 0.0.0.0:8000"
     volumes:
-      - ./app:/code
+      - ./backend:/code
     ports:
       - 8000:8000
     env_file:
       - .env
 
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/code/build
+    stdin_open: true
+    tty: true
+
+  nginx:
+    build:
+      context: ./nginx
+    volumes:
+      - frontend:/var/www/frontend
+      - backend:/var/www/code
+    ports:
+      - "80:8080"
+    depends_on:
+      - backend
+      - frontend  
+      - app
+
   app:
     build:
       context: .
-      dockerfile: app/docker/docker_files/Dockerfile_app
-    platform: linux/amd64
+      dockerfile: backend/docker/docker_files/Dockerfile_app
+    image: myapp:latest
+    container_name: myapp_container
     restart: unless-stopped
     ports:
       - 5000:5000
+    env_file:
+      - .env
+    environment:
+      - FLASK_APP=server.py
+      - FLASK_ENV=development
+    command: flask run --host=0.0.0.0 --port=5000
+    depends_on:
+      - db
+    networks:
+      - myapp_net
+
+  db:
+    image: mongo:latest
+    container_name: myapp_mongodb
+    environment:
+    - MONGO_INITDB_DATABASE=test_mongodb
+    - MONGO_INITDB_ROOT_USERNAME=root
+    - MONGO_INITDB_ROOT_PASSWORD=pass
+    ports:
+      - 27017:27017
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - myapp_net
+  #app:
+    #  build:
+
+    #platform: linux/amd64
+    #restart: unless-stopped
+    #ports:
+      #  - 5000:5000
 
 volumes:
-  db_data:
+  frontend:
+  backend:
+  mongo_data:
 
+networks:
+  myapp_net:
+    driver: bridge

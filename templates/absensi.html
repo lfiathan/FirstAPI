@@ -1,0 +1,201 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Absensi Management</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f4f4f9;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+    th, td {
+      padding: 10px;
+      text-align: left;
+    }
+    th {
+      background-color: #333;
+      color: #fff;
+    }
+    form {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    button {
+      padding: 10px 15px;
+      background-color: #333;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #555;
+    }
+  </style>
+</head>
+<body>
+  <h1>Absensi Management</h1>
+  <form id="absensiForm">
+    <h2>Create / Update Absensi</h2>
+    <label for="karyawan_id">Karyawan ID</label>
+    <input type="text" id="karyawan_id" name="karyawan_id" required>
+    
+    <label for="tanggal">Tanggal</label>
+    <input type="date" id="tanggal" name="tanggal">
+    
+    <label for="waktu_masuk">Waktu Masuk</label>
+    <input type="time" id="waktu_masuk" name="waktu_masuk">
+    
+    <label for="waktu_keluar">Waktu Keluar</label>
+    <input type="time" id="waktu_keluar" name="waktu_keluar">
+    
+    <label for="status_absensi">Status Absensi</label>
+    <select id="status_absensi" name="status_absensi">
+      <option value="hadir">Hadir</option>
+      <option value="izin">Izin</option>
+      <option value="sakit">Sakit</option>
+    </select>
+    
+    <input type="hidden" id="absensi_id">
+    <button type="submit">Save Absensi</button>
+  </form>
+
+  <h2>Absensi List</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Karyawan ID</th>
+        <th>Tanggal</th>
+        <th>Waktu Masuk</th>
+        <th>Waktu Keluar</th>
+        <th>Status Absensi</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="absensiList"></tbody>
+  </table>
+
+  <script>
+    const absensiForm = document.getElementById('absensiForm');
+    const absensiList = document.getElementById('absensiList');
+    const apiUrl = '/absensis';
+
+    // Load Absensi data
+    function loadAbsensis() {
+      fetch(apiUrl)
+        .then(res => res.json())
+        .then(data => {
+          absensiList.innerHTML = '';
+          data.forEach(absensi => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${absensi.karyawan_id}</td>
+              <td>${absensi.tanggal}</td>
+              <td>${absensi.waktu_masuk || '-'}</td>
+              <td>${absensi.waktu_keluar || '-'}</td>
+              <td>${absensi.status_absensi}</td>
+              <td>
+                <button onclick="editAbsensi('${absensi._id}')">Edit</button>
+                <button onclick="deleteAbsensi('${absensi._id}')">Delete</button>
+              </td>
+            `;
+            absensiList.appendChild(row);
+          });
+        })
+        .catch(error => console.error('Error loading absensis:', error));
+    }
+
+    // Handle form submit
+    absensiForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const absensiData = {
+        karyawan_id: document.getElementById('karyawan_id').value,
+        tanggal: document.getElementById('tanggal').value,
+        waktu_masuk: document.getElementById('waktu_masuk').value,
+        waktu_keluar: document.getElementById('waktu_keluar').value,
+        status_absensi: document.getElementById('status_absensi').value
+      };
+
+      const absensiId = document.getElementById('absensi_id').value;
+
+      if (absensiId) {
+        fetch(`${apiUrl}/${absensiId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(absensiData)
+        })
+          .then(() => {
+            alert('Absensi updated!');
+            absensiForm.reset();
+            loadAbsensis();
+          })
+          .catch(error => console.error('Error updating absensi:', error));
+      } else {
+        fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(absensiData)
+        })
+          .then(() => {
+            alert('Absensi created!');
+            absensiForm.reset();
+            loadAbsensis();
+          })
+          .catch(error => console.error('Error creating absensi:', error));
+      }
+    });
+
+    // Edit Absensi
+    function editAbsensi(id) {
+      fetch(`${apiUrl}/${id}`)
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById('karyawan_id').value = data.karyawan_id;
+          document.getElementById('tanggal').value = data.tanggal;
+          document.getElementById('waktu_masuk').value = data.waktu_masuk;
+          document.getElementById('waktu_keluar').value = data.waktu_keluar;
+          document.getElementById('status_absensi').value = data.status_absensi;
+          document.getElementById('absensi_id').value = id;
+        })
+        .catch(error => console.error('Error loading absensi:', error));
+    }
+
+    // Delete Absensi
+    function deleteAbsensi(id) {
+      if (confirm('Are you sure you want to delete this absensi?')) {
+        fetch(`${apiUrl}/${id}`, { method: 'DELETE' })
+          .then(() => {
+            alert('Absensi deleted!');
+            loadAbsensis();
+          })
+          .catch(error => console.error('Error deleting absensi:', error));
+      }
+    }
+
+    // Initial load
+    loadAbsensis();
+  </script>
+</body>
+</html>

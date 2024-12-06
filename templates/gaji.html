@@ -1,0 +1,152 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gaji Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js"></script>
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="text-center">Gaji Management</h1>
+        
+        <!-- Form for Creating/Updating Gaji -->
+        <div class="card mt-4">
+            <div class="card-header">Add/Update Gaji</div>
+            <div class="card-body">
+                <form id="gajiForm">
+                    <input type="hidden" id="gajiId" name="gajiId">
+                    <div class="mb-3">
+                        <label for="karyawanId" class="form-label">Karyawan ID</label>
+                        <input type="text" id="karyawanId" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="bulan" class="form-label">Bulan</label>
+                        <input type="text" id="bulan" class="form-control" placeholder="e.g., January 2024">
+                    </div>
+                    <div class="mb-3">
+                        <label for="gajiPokok" class="form-label">Gaji Pokok</label>
+                        <input type="number" id="gajiPokok" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="tunjangan" class="form-label">Tunjangan</label>
+                        <input type="number" id="tunjangan" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="potongan" class="form-label">Potongan</label>
+                        <input type="number" id="potongan" class="form-control">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Table to Display Gaji -->
+        <div class="card mt-4">
+            <div class="card-header">Gaji List</div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Karyawan ID</th>
+                            <th>Bulan</th>
+                            <th>Gaji Pokok</th>
+                            <th>Tunjangan</th>
+                            <th>Potongan</th>
+                            <th>Total Gaji</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="gajiTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '/gajis';
+
+        // Load Gaji Data
+        function loadGaji() {
+            axios.get(API_URL)
+                .then(response => {
+                    const tbody = document.getElementById('gajiTableBody');
+                    tbody.innerHTML = '';
+                    response.data.forEach((gaji, index) => {
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${index + 1}</td>
+                                <td>${gaji.karyawan_id}</td>
+                                <td>${gaji.bulan}</td>
+                                <td>${gaji.gaji_pokok}</td>
+                                <td>${gaji.tunjangan}</td>
+                                <td>${gaji.potongan}</td>
+                                <td>${gaji.total_gaji}</td>
+                                <td>
+                                    <button class="btn btn-warning btn-sm" onclick="editGaji('${gaji._id}')">Edit</button>
+                                    <button class="btn btn-danger btn-sm" onclick="deleteGaji('${gaji._id}')">Delete</button>
+                                </td>
+                            </tr>`;
+                    });
+                })
+                .catch(error => console.error(error));
+        }
+
+        // Handle Form Submit
+        document.getElementById('gajiForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const id = document.getElementById('gajiId').value;
+            const data = {
+                karyawan_id: document.getElementById('karyawanId').value,
+                bulan: document.getElementById('bulan').value,
+                gaji_pokok: document.getElementById('gajiPokok').value,
+                tunjangan: document.getElementById('tunjangan').value || 0,
+                potongan: document.getElementById('potongan').value || 0,
+            };
+            if (id) {
+                axios.put(`${API_URL}/${id}`, data)
+                    .then(() => { loadGaji(); resetForm(); })
+                    .catch(error => console.error(error));
+            } else {
+                axios.post(API_URL, data)
+                    .then(() => { loadGaji(); resetForm(); })
+                    .catch(error => console.error(error));
+            }
+        });
+
+        // Edit Gaji
+        function editGaji(id) {
+            axios.get(`${API_URL}/${id}`)
+                .then(response => {
+                    const gaji = response.data;
+                    document.getElementById('gajiId').value = gaji._id;
+                    document.getElementById('karyawanId').value = gaji.karyawan_id;
+                    document.getElementById('bulan').value = gaji.bulan;
+                    document.getElementById('gajiPokok').value = gaji.gaji_pokok;
+                    document.getElementById('tunjangan').value = gaji.tunjangan;
+                    document.getElementById('potongan').value = gaji.potongan;
+                })
+                .catch(error => console.error(error));
+        }
+
+        // Delete Gaji
+        function deleteGaji(id) {
+            axios.delete(`${API_URL}/${id}`)
+                .then(() => loadGaji())
+                .catch(error => console.error(error));
+        }
+
+        // Reset Form
+        function resetForm() {
+            document.getElementById('gajiForm').reset();
+            document.getElementById('gajiId').value = '';
+        }
+
+        // Initial Load
+        loadGaji();
+    </script>
+</body>
+</html>

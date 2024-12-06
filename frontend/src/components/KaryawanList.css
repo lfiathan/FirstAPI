@@ -1,0 +1,48 @@
+
+/* Container for the list */
+div {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Heading */
+h2 {
+  text-align: center;
+  color: #333;
+  font-size: 2em;
+  margin-bottom: 20px;
+}
+
+/* List styling */
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+/* Each list item */
+li {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.2em;
+  color: #333;
+}
+
+li:last-child {
+  border-bottom: none;
+}
+
+li span {
+  color: #555;
+}
+
+/* Styling for hover effect */
+li:hover {
+  background-color: #f1f1f1;
+  cursor: pointer;
+}
